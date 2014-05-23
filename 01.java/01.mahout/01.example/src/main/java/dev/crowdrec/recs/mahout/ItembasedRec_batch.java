@@ -99,31 +99,59 @@ public class ItembasedRec_batch {
 				FileWriter writer = null;
 				try {
 					msgreader = new BufferedReader(new FileReader(msg_in));
-					writer = new FileWriter(msg_out);
 					String command = msgreader.readLine();
 					if ( READINPUT_CMD.equals(command) ) {
-						if ( cmdReadinput(msgreader) ) {
-							writer.write(OUTMSG_OK);
-						} else {
-							writer.write(OUTMSG_KO);
+						boolean success = cmdReadinput(msgreader);
+						try {
+							writer = new FileWriter(msg_out);
+							writer.write(success ? OUTMSG_OK : OUTMSG_KO);
+						} finally {
+							if ( writer != null ) {
+								writer.close();
+							}
 						}
 					} else if (TRAIN_CMD.equals(command) ) {
 						try {
 							recommender = createRecommender(stagedir + File.separator + TMP_MAHOUT_USERRATINGS_FILENAME);
-							writer.write(OUTMSG_OK);
+							try {
+								writer = new FileWriter(msg_out);
+								writer.write(OUTMSG_OK);
+							} finally {
+								if ( writer != null ) {
+									writer.close();
+								}
+							}
 						} catch (TasteException e) {
-							writer.write(OUTMSG_KO);
-							e.printStackTrace();
+							try {
+								writer = new FileWriter(msg_out);
+								writer.write(OUTMSG_KO);
+								e.printStackTrace();
+							} finally {
+								if ( writer != null ) {
+									writer.close();
+								}
+							}
 						}
 					} else if (RECOMMEND_CMD.equals(command)) {
-						if ( recommender != null && cmdRecommend(msgreader, recommender) ) {
-							writer.write(OUTMSG_OK);
-						} else {
-							writer.write(OUTMSG_KO);
+						boolean success = recommender != null && cmdRecommend(msgreader, recommender);
+						try {
+							writer = new FileWriter(msg_out);
+							writer.write(success ? OUTMSG_OK : OUTMSG_KO);
+						} finally {
+							if ( writer != null ) {
+								writer.close();
+							}
 						}
 					} else if (STOP_CMD.equals(command)) {
-						writer.write(OUTMSG_OK);
-						stop = true;
+						try {
+							writer = new FileWriter(msg_out);
+							writer.write(OUTMSG_OK);
+							stop = true;
+						} finally {
+							if ( writer != null ) {
+								writer.close();
+							}
+						}
 					}
 				} finally {
 					if ( msgreader != null ) {
