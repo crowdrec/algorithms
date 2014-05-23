@@ -79,7 +79,7 @@ public class ItembasedRec_batch {
 				writer.close();
 			}
 		}
-		System.out.println("machine started");
+		System.out.println("ALGO: machine started");
 	}
 	
 	public void run() throws IOException, TasteException {
@@ -101,8 +101,10 @@ public class ItembasedRec_batch {
 					msgreader = new BufferedReader(new FileReader(msg_in));
 					String command = msgreader.readLine();
 					if ( READINPUT_CMD.equals(command) ) {
+						System.out.println("ALGO: running READ INPUT cmd");
 						boolean success = cmdReadinput(msgreader);
 						try {
+							System.out.println(success ? "ALGO: input correctly read" : "ALGO: failing input read");
 							writer = new FileWriter(msg_out);
 							writer.write(success ? OUTMSG_OK : OUTMSG_KO);
 						} finally {
@@ -111,9 +113,11 @@ public class ItembasedRec_batch {
 							}
 						}
 					} else if (TRAIN_CMD.equals(command) ) {
+						System.out.println("ALGO: running TRAIN cmd");
 						try {
 							recommender = createRecommender(stagedir + File.separator + TMP_MAHOUT_USERRATINGS_FILENAME);
 							try {
+								System.out.println("ALGO: recommender created");
 								writer = new FileWriter(msg_out);
 								writer.write(OUTMSG_OK);
 							} finally {
@@ -133,8 +137,10 @@ public class ItembasedRec_batch {
 							}
 						}
 					} else if (RECOMMEND_CMD.equals(command)) {
-						boolean success = recommender != null && cmdRecommend(msgreader, recommender);
+						System.out.println("ALGO: running RECOMMEND cmd");
+						boolean success = (recommender != null && cmdRecommend(msgreader, recommender));
 						try {
+							System.out.println(success ? "ALGO: recommedation completed correctly" : "ALGO: failure in generating recommendations");
 							writer = new FileWriter(msg_out);
 							writer.write(success ? OUTMSG_OK : OUTMSG_KO);
 						} finally {
