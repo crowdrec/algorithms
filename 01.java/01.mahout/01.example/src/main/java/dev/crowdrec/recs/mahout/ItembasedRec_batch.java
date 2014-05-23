@@ -167,6 +167,7 @@ public class ItembasedRec_batch {
 						writer.close();
 					}
 				}
+				System.out.println("ALGO: cmd executed. Deleting msg");
 				msg_in.delete();
 			} else {
 				try {
