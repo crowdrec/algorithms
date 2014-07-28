@@ -126,18 +126,54 @@ public class ItembasedRec_batch {
 		System.out.println("shutdown");
 	}
 
+	/*
+		subject_etype    user
+		subject_eid    1001
+		request_timestamp    1404910899
+		request_properties    {"device":["smartphone", "android"], "location":"home"}
+		recomm_properties    { "explanation":"suggested by your close friends"}
+		linked_entities    [{"id":"movie:2001","rating":3.8,"rank":3}, {"id":"movie:2002","rating":4.3,"rank":1}, {"id":"movie:2003","rating":4,"rank":2,"explanation":{"reason":"you like","entity":"movie:2004"}}]
+	*/
 	protected ZMsg cmdRecommend(ZMsg msg, Recommender recommender) throws IOException, TasteException {
+		int reclen = Integer.parseInt( msg.remove().toString() );
+
 		ZMsg recomms = new ZMsg();
-		for (ZFrame userIdStr : msg) {
-			int userid = Integer.parseInt(userIdStr.toString());
-			recomms.addString("BEGIN user " + userid);
-			List<RecommendedItem> reclist = recommender.recommend(userid, 5);
-			if ( reclist != null && reclist.size() > 0 ) {
-				for ( RecommendedItem item : reclist ) {
-					recomms.addString(item.toString());
+		for (ZFrame entityIdStr : msg) {
+			String[] entityEls = entityIdStr.toString().split(":");
+			if ( entityEls.length == 2 ) {
+				String etype = entityEls[0];
+				long eid = Long.parseLong(entityEls[1]);
+				StringBuilder sb = new StringBuilder();
+				sb.append(etype).append("\t");
+				sb.append(Long.toString(eid)).append("\t");
+				sb.append(System.currentTimeMillis()).append("\t");
+				sb.append("{}").append("\t");
+				sb.append("{\"reclen\":").append(Integer.toString(reclen)).append("}").append("\t");
+				sb.append("[");
+				List<RecommendedItem> reclist = recommender.recommend(eid, reclen);
+				if ( reclist != null && reclist.size() > 0 ) {
+					int rank = 0;
+					for ( RecommendedItem item : reclist ) {
+						rank++;
+						if ( rank > 1 ) {
+							sb.append(",");
+						}
+						sb.append("{");
+						sb.append("\"id\":\"").append(item.getItemID()).append("\"");
+						sb.append(",");
+						sb.append("\"rating\":\"").append(item.getValue()).append("\"");
+						sb.append(",");
+						sb.append("\"rank\":\"").append(Integer.toString(rank)).append("\"");
+						sb.append("}");
+					}
+				} else {
+					// do nothing
 				}
+				sb.append("]");
+				recomms.addString(sb.toString());
+			} else {
+				// TODO: manage error
 			}
-			recomms.addString("END user " + userid);
 		}
 
 		return recomms;
