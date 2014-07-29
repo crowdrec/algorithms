@@ -60,9 +60,17 @@ public class ItembasedRec_batch {
 		String outdir = args[0];
 		String comm = args[1];
 
+		System.out.println("ALGO: ZMQ creating context");
 		Context context = ZMQ.context(1);
+		System.out.println("ALGO: ZMQ created context");
+		System.out.println("ALGO: ZMQ creating socket");
 		Socket comm_sock = context.socket(ZMQ.REQ);
+		System.out.println("ALGO: ZMQ created context");
+		comm_sock.setReceiveTimeOut(10000);
+		System.out.println("ALGO: ZMQ setting timeout");
+		System.out.println("ALGO: ZMQ connecting to socket");
 		comm_sock.connect(comm);
+		System.out.println("ALGO: ZMQ connected to socket");
 
 		ItembasedRec_batch ubr = new ItembasedRec_batch(outdir, comm_sock);
 		ubr.run();
@@ -82,9 +90,14 @@ public class ItembasedRec_batch {
 		Recommender recommender = null;
 		boolean stop = false;
 
+		System.out.println("ALGO: sending READY message");
 		communication_socket.send(OUTMSG_READY, 0);
 		while ( !stop ) {
-			ZMsg recvMsg = ZMsg.recvMsg(this.communication_socket);
+			ZMsg recvMsg = null;
+			while ( recvMsg == null ) {
+				recvMsg = ZMsg.recvMsg(this.communication_socket);
+			}
+			System.out.println("ALGO: received message: " + recvMsg.toString());
 			ZFrame command = recvMsg.remove();
 
 			if (command.streq(READINPUT_CMD)) {

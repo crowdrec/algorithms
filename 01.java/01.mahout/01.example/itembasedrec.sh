@@ -4,13 +4,23 @@
 #
 # processname: itembasedrec
 
+LOG=/tmp/mahout.log
+echo "itembasedrec service" $1 >> $LOG
+
 case $1 in
+    status)
+        $0 start
+    ;;
     start)
+	    echo "starting itembasedrec service" >> $LOG
+        sleep 20
         cd /mnt/algo
         ORCH=`netstat -rn | grep "^0.0.0.0 " | cut -d " " -f10`
-        java -cp target/crowdrec-mahout-test-1.0-SNAPSHOT-jar-with-dependencies.jar dev.crowdrec.recs.mahout.ItembasedRec_batch /tmp tcp://$ORCH:2760 > /tmp/mahout.log &
+        echo executing java -cp /mnt/algo/target/crowdrec-mahout-test-1.0-SNAPSHOT-jar-with-dependencies.jar dev.crowdrec.recs.mahout.ItembasedRec_batch /tmp tcp://$ORCH:2760 >> $LOG
+        java -cp /mnt/algo/target/crowdrec-mahout-test-1.0-SNAPSHOT-jar-with-dependencies.jar dev.crowdrec.recs.mahout.ItembasedRec_batch /tmp tcp://$ORCH:2760 >> $LOG
     ;;
     stop)
+	   echo "stopping itembasedrec service" >> $LOG
         pid=`ps aux | grep dev.crowdrec.recs.mahout.ItembasedRec_batch | grep java |awk '{print $2}'`
         kill -9 $pid
     ;;
