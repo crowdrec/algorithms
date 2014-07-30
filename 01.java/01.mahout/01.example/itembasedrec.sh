@@ -11,7 +11,7 @@ case $1 in
     status)
         status=`ps aux | grep dev.crowdrec.recs.mahout.ItembasedRec_batch | grep java | wc -l`
         echo status $status >> $LOG
-        #$0 start
+        $0 start
         #exit 0
     ;;
     start)
