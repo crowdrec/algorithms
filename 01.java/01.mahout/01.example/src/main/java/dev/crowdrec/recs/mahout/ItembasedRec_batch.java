@@ -5,9 +5,14 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.StringReader;
 import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.util.List;
+
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
@@ -242,32 +247,32 @@ public class ItembasedRec_batch {
 					double ratingscore = 0;
 
 					if ( props != null ) {
-						String[] els_props = props.split("::");
-						for ( String el_props : els_props ) {
-							String mdname = el_props.split("=")[0];
-							String mdval = el_props.split("=")[1];
-							if ( "rating".equals(mdname) ) {
-								ratingscore = Double.parseDouble(mdval);
-							}
-						}
+						JsonReader props_reader = Json.createReader(new StringReader(props));
+						JsonObject props_json = props_reader.readObject();
+						props_reader.close();
+
+						ratingscore = props_json.getInt("rating", 0);
 					}
 
 					if ( links != null ) {
-						String[] els_links = links.split("::");
-						for ( String el_links : els_links ) {
-							el_links = el_links.replaceAll("\\((.*)\\)", "$1");
-							String mdname = el_links.split("=")[0];
-							String mdval = el_links.split("=")[1];
-							if ( mdval != null ) {
-								String etype = mdval.split(":")[0];
-								String eid = mdval.split(":")[1];
-								if ( etype != null && eid != null ) {
-									if ( "subject".equals(mdname) && etype.equals(user_etype) ) {
-										userid = eid;
-									} else if ( "object".equals(mdname) && etype.equals(movie_etype) ) {
-										itemid = eid;
-									}
-								}
+						JsonReader links_reader = Json.createReader(new StringReader(links));
+						JsonObject links_json = links_reader.readObject();
+						links_reader.close();
+
+						String subject = links_json.getString("subject", null);
+						String object = links_json.getString("object", null);
+						if (subject != null) {
+							String etype = subject.split(":")[0];
+							String eid = subject.split(":")[1];
+							if (etype.equals(user_etype)) {
+								userid = eid;
+							}
+						}
+						if (object != null) {
+							String etype = object.split(":")[0];
+							String eid = object.split(":")[1];
+							if (etype.equals(movie_etype)) {
+								itemid = eid;
 							}
 						}
 					}
